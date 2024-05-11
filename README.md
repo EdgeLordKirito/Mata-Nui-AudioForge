@@ -16,7 +16,7 @@ To use Mata-Nui-AudioForge, follow these steps:
 2. Navigate to the directory where the nui.py script is located.
 3. Run the script using Python, providing a YouTube video URL, video ID, or playlist link as an argument:
 ```
-python nui.py <Video URL | VIDEO ID | Playlist link>
+python nui.py <Video URL | Video ID | Playlist link>
 ```
 Replace <Video URL | Video Id | Playlist link> with the URL, video ID, or playlist link of the YouTube content you want to download and process.
 
