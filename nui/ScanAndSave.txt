@@ -1,0 +1,7 @@
+#Scan Files
+SCAN
+#Save the Files
+SAVE_MATCHED
+SAVE_MODIFIED
+#Close
+QUIT FORCE
