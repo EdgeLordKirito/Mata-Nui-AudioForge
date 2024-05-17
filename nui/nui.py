@@ -33,7 +33,8 @@ def download_playlist(video_id):
         "--audio-format", "mp3",
         "--audio-quality", "320k",
         "-o", "[%(id)s]§§§%(title)s+++%(uploader)s.%(ext)s",
-        "--windows-filenames",
+        "--restrict-filenames",
+        "--windows-filenames",  
         video_id
     ]
     subprocess.run(command)
@@ -47,6 +48,7 @@ def download_video(video_id):
         "--audio-format", "mp3",
         "--audio-quality", "320k",
         "-o", "[%(id)s]§§§%(title)s+++%(uploader)s.%(ext)s",
+        "--restrict-filenames",
         "--windows-filenames",
         video_id
     ]

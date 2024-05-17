@@ -6,9 +6,9 @@ def embed_metadata(mp3_path, title, artist, cover_path):
         # Load MP3 file
         audio = eyed3.load(mp3_path)
 
-        # Set title and artist
-        audio.tag.title = title
-        audio.tag.artist = artist
+        # Set title and artist with underscores replaced by spaces
+        audio.tag.title = title.replace("_", " ")
+        audio.tag.artist = artist.replace("_", " ")
 
         # Embed cover image
         with open(cover_path, 'rb') as f:
