@@ -43,7 +43,7 @@ def run_picard_command(path):
         time.sleep(1)
 
     # Wait for additional time after the canary file is modified
-    time.sleep(10)
+    time.sleep(5)
 
     # Remove the canary file
     remove_canary_file(path)

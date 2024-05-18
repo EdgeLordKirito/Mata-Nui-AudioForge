@@ -88,6 +88,7 @@ def extract_id_title_uploader(filename):
 
     # Trim the title to remove leading and following '-', '_', and spaces
     title = remove_uploader_from_title(uploader,title)
+    uploader = process_uploader(uploader)
 
     return video_id, title, uploader
 
@@ -109,6 +110,14 @@ def remove_uploader_from_title(uploader, title):
 
     return title
     
+def process_uploader(uploader):
+    # Use a regular expression to find "topic" as a standalone word
+    pattern = re.compile(r'(^|\s|_)topic($|\s|[_])', re.IGNORECASE)
+    
+    # Replace standalone "topic" with an empty string and strip unnecessary characters
+    uploader = pattern.sub('', uploader).strip(" -_")
+    
+    return uploader
     
 def move_download_to_output():
     download_dir = "download"
@@ -186,6 +195,8 @@ def main():
         print("ID:", video_id)
         print("Title:", title)
         print("Uploader:", uploader)
+        
+        
         
         # Run the thumbnail1-1Crop.py script
         subprocess.run(["python", thumbnail_script_path, video_id])  # Execute the script
