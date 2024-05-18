@@ -196,7 +196,7 @@ def main():
         subprocess.run(["python", metadata_script_path, mp3_file, title, uploader, cover_image])  # Execute the script
         
         # Rename the MP3 file based on extracted title and uploader
-        new_filename = f"{uploader} - {title}.mp3"  # Construct new filename
+        new_filename = f"{uploader} - {title}.mp3".replace("_", " ")  # Construct new filename
         os.rename(mp3_file, new_filename)  # Rename the file
         
     # Cleanup step  
