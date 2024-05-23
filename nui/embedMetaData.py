@@ -10,10 +10,11 @@ def embed_metadata(mp3_path, title, artist, cover_path):
         audio.tag.title = title.replace("_", " ")
         audio.tag.artist = artist.replace("_", " ")
 
-        # Embed cover image
-        with open(cover_path, 'rb') as f:
-            cover_data = f.read()
-        audio.tag.images.set(3, cover_data, "image/jpeg", u"Cover")
+        # Embed cover image if cover_path is not 'None'
+        if cover_path.lower() != 'none':
+            with open(cover_path, 'rb') as f:
+                cover_data = f.read()
+            audio.tag.images.set(3, cover_data, "image/jpeg", u"Cover")
 
         # Save changes
         audio.tag.save()
