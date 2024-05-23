@@ -149,6 +149,12 @@ def move_download_to_output():
     print("Files moved from 'download' to 'output' directory.")
 
 
+def check_write_permissions():
+    current_directory = os.getcwd()
+    if not os.access(current_directory, os.W_OK):
+        print("Error: No write permission in the current directory.")
+        sys.exit(1) 
+
 def check_override_path(override_image_path):
     """
     Check if the provided override image path is valid and if the image dimensions are within 2000x2000 pixels.
@@ -173,6 +179,9 @@ def check_override_path(override_image_path):
         sys.exit(1)
 
 def main():
+
+    check_write_permissions()
+    
     if len(sys.argv) != 2:
         print("Usage: python script.py <YouTube video URL or video ID> [-t] [-c] [-o <override_image_path>]")
         sys.exit(1)
@@ -180,7 +189,6 @@ def main():
     url = sys.argv[1]
     
     skip_thumbnail_flag = False
-    cut_needed_flag = False
     override_image_path = None
     override_image = False
 
@@ -188,8 +196,6 @@ def main():
     for i, arg in enumerate(sys.argv[2:]):
         if arg == "-t":
             skip_thumbnail_flag = True
-        elif arg == "-c":
-            cut_needed_flag = True
         elif arg == "-o":
             if i + 1 < len(sys.argv):
                 if check_override_path(sys.argv[i + 1]):
@@ -222,17 +228,20 @@ def main():
         os.chdir("download")
         download_video(video_id)
         pass
-    
-    # Part 4: Collect MP3 files
-    mp3_files = collect_mp3_files()
-    print("Number of MP3 files in current directory:", len(mp3_files))
-    
+
+
     # Copy the needed script
     path_to_self = os.path.dirname(__file__)
     thumbnail_script_path = os.path.join(path_to_self, "thumbnail1-1Crop.py")
     metadata_script_path = os.path.join(path_to_self, "embedMetaData.py")
     picard_script_path = os.path.join(path_to_self, "picardCanary.py")
     override_script_path = os.path.join(path_to_self, "overrideImage.py")
+    
+    # Part 4: Collect MP3 files
+    mp3_files = collect_mp3_files()
+    print("Number of MP3 files in current directory:", len(mp3_files))
+     
+    #Idea add list that holds all seen ids then id data is not lost after renaming the files
     
     # Loop over the mp3_files list
     for mp3_file in mp3_files:
@@ -252,7 +261,7 @@ def main():
         if not os.path.exists(cover_image):
             cover_image = "None"
         # metadata script execution
-        subprocess.run(["python", metadata_script_path, mp3_file, title, uploader, cover_image])  # Execute the script
+        subprocess.run(["python", metadata_script_path, mp3_file, title, uploader, cover_image, f"[{video_id}]"])  # Execute the script
         
         # Rename the MP3 file based on extracted title and uploader
         new_filename = f"{uploader} - {title}.mp3".replace("_", " ")  # Construct new filename
@@ -273,9 +282,7 @@ def main():
     
     if override_image:
         os.chdir("download")
-        mp3_files = collect_mp3_files()
-        for mp3_file in mp3_files:
-            
+        for mp3_file in mp3_files:      
             override_command = ["python", override_script_path, mp3_file, override_image_path]
             subprocess.run(override_command)
         

@@ -1,7 +1,7 @@
 import sys
 import eyed3
 
-def embed_metadata(mp3_path, title, artist, cover_path):
+def embed_metadata(mp3_path, title, artist, cover_path, comment):
     try:
         # Load MP3 file
         audio = eyed3.load(mp3_path)
@@ -16,6 +16,9 @@ def embed_metadata(mp3_path, title, artist, cover_path):
                 cover_data = f.read()
             audio.tag.images.set(3, cover_data, "image/jpeg", u"Cover")
 
+        # Set comment
+        audio.tag.comments.set(comment)
+
         # Save changes
         audio.tag.save()
         print("Metadata embedded successfully.")
@@ -23,13 +26,14 @@ def embed_metadata(mp3_path, title, artist, cover_path):
         print("Error embedding metadata:", e)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        print("Usage: python script.py <mp3_path> <title> <artist> <cover_path>")
+    if len(sys.argv) != 6:
+        print("Usage: python script.py <mp3_path> <title> <artist> <cover_path> <comment>")
         sys.exit(1)
 
     mp3_path = sys.argv[1]
     title = sys.argv[2]
     artist = sys.argv[3]
     cover_path = sys.argv[4]
+    comment = sys.argv[5]
 
-    embed_metadata(mp3_path, title, artist, cover_path)
+    embed_metadata(mp3_path, title, artist, cover_path, comment)
