@@ -232,7 +232,7 @@ def main():
     thumbnail_script_path = os.path.join(path_to_self, "thumbnail1-1Crop.py")
     metadata_script_path = os.path.join(path_to_self, "embedMetaData.py")
     picard_script_path = os.path.join(path_to_self, "picardCanary.py")
-    override_script_path = os.path.join(path_to_self, "overrideimage.py")
+    override_script_path = os.path.join(path_to_self, "overrideImage.py")
     
     # Loop over the mp3_files list
     for mp3_file in mp3_files:
