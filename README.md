@@ -19,9 +19,9 @@ To use Mata-Nui-AudioForge, follow these steps:
 python script.py <Video URL | Video ID | Playlist link> [-t] [-o <override_image_path>
 ```
 Replace <Video URL | Video Id | Playlist link> with the URL, video ID, or playlist link of the YouTube content you want to download and process.
-Optional:
-The -t flag removes the automatic thumbnail embedding that is done.
-the -o flag overrides all embeded covers of the final files with the specified image an absolut path to the image is required.
+Optional:  
+The -t flag removes the automatic thumbnail embedding that is done.  
+the -o flag overrides all embeded covers of the final files with the specified image an absolut path to the image is required.  
 
 ### Simplifying Execution
 
