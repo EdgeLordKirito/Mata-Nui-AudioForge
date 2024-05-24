@@ -118,7 +118,24 @@ def process_uploader(uploader):
     uploader = pattern.sub('', uploader).strip(" -_")
     
     return uploader
+ 
+def remove_from_string(replacer, target):
+    replacer_lower = replacer.lower()
+    target_lower = target.lower()
+
+    # Replace all occurrences of replacer (case insensitive) with an empty string
+    pattern = re.compile(replacer_lower, re.IGNORECASE)
+    modified_target = pattern.sub('', target)
+
+    # Replace multiple consecutive delimiters with a single one
+    modified_target = re.sub(r'([_\-. ,/\\|:;])\1+', r'\1', modified_target)
+
+    # Strip leading and trailing undesired characters and return the result
+    modified_target = modified_target.strip("_- .,/\\|:;").strip()
     
+    return modified_target
+
+ 
 def move_download_to_output():
     download_dir = "download"
     output_dir = "output"
