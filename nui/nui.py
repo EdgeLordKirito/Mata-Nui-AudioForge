@@ -87,12 +87,13 @@ def extract_id_title_uploader(filename):
         uploader = None
 
     # Trim the title to remove leading and following '-', '_', and spaces
-    title = remove_uploader_from_title(uploader,title)
+    title = remove_from_string(uploader,title)
     uploader = process_uploader(uploader)
 
     return video_id, title, uploader
 
 
+#should be deprecated but is still here to ensure that if there is an call no exception is thrown
 def remove_uploader_from_title(uploader, title):
     uploader_copy = uploader
     title_copy = title
@@ -111,12 +112,16 @@ def remove_uploader_from_title(uploader, title):
     return title
     
 def process_uploader(uploader):
-    # Use a regular expression to find "topic" as a standalone word
-    pattern = re.compile(r'(^|\s|_)topic($|\s|[_])', re.IGNORECASE)
-    
-    # Replace standalone "topic" with an empty string and strip unnecessary characters
-    uploader = pattern.sub('', uploader).strip(" -_")
-    
+    delimiters = ['_', '-', '.', ' ', ',', '/', '\\', '|', ':', ';']
+    words_to_remove = ["topic", "official", "Vevo"]
+
+    # Add "YouTube[delimiter]Channel" variations to the words_to_remove list
+    youtube_channel_variants = [f"YouTube{delimiter}Channel" for delimiter in delimiters]
+    words_to_remove.extend(youtube_channel_variants)
+
+    for word in words_to_remove:
+        uploader = remove_from_string(word, uploader)
+
     return uploader
  
 def remove_from_string(replacer, target):
@@ -125,10 +130,11 @@ def remove_from_string(replacer, target):
 
     # Replace all occurrences of replacer (case insensitive) with an empty string
     pattern = re.compile(replacer_lower, re.IGNORECASE)
-    modified_target = pattern.sub('', target)
+    modified_target, count = pattern.subn('', target)
 
-    # Replace multiple consecutive delimiters with a single one
-    modified_target = re.sub(r'([_\-. ,/\\|:;])\1+', r'\1', modified_target)
+    # Replace multiple consecutive delimiters with a single one if any substitution was made
+    if count > 0:
+        modified_target = re.sub(r'([_\-. ,/\\|:;])\1+', r'\1', modified_target)
 
     # Strip leading and trailing undesired characters and return the result
     modified_target = modified_target.strip("_- .,/\\|:;").strip()
