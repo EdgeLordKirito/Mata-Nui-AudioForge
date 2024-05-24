@@ -3,6 +3,8 @@ import re
 import sys
 import subprocess
 import shutil
+from PIL import Image
+
 
 def extract_video_id(url):
     # Extract video ID using regex
@@ -129,7 +131,7 @@ def remove_from_string(replacer, target):
     target_lower = target.lower()
 
     # Replace all occurrences of replacer (case insensitive) with an empty string
-    pattern = re.compile(replacer_lower, re.IGNORECASE)
+    pattern = re.compile(re.escape(replacer_lower), re.IGNORECASE)
     modified_target, count = pattern.subn('', target)
 
     # Replace multiple consecutive delimiters with a single one if any substitution was made
@@ -188,6 +190,9 @@ def check_override_path(override_image_path):
     Returns:
         bool: True if the image is valid, False otherwise.
     """
+    
+    print("Override Image is")
+    print(override_image_path)
     if os.path.isfile(override_image_path) and override_image_path.lower().endswith('.jpg'):
         # Check image dimensions
         img = Image.open(override_image_path)
@@ -205,8 +210,8 @@ def main():
 
     check_write_permissions()
     
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <YouTube video URL or video ID> [-t] [-c] [-o <override_image_path>]")
+    if len(sys.argv) < 2:
+        print("Usage: python script.py <YouTube video URL or video ID> [-t] [-o <override_image_path>]")
         sys.exit(1)
 
     url = sys.argv[1]
@@ -216,7 +221,9 @@ def main():
     override_image = False
 
     # Check for the flags in the arguments
-    for i, arg in enumerate(sys.argv[2:]):
+    for i, arg in enumerate(sys.argv):
+        if i == 0:  # Skip the script name at index 0
+            continue
         if arg == "-t":
             skip_thumbnail_flag = True
         elif arg == "-o":
@@ -277,17 +284,22 @@ def main():
         
         if not skip_thumbnail_flag:
             # Run the thumbnail1-1Crop.py script
-            subprocess.run(["python", thumbnail_script_path, video_id])  # Execute the script
+            print(f"Downloading Thumbnails for [{video_id}]")
+            thumbnail_Command = ["python", thumbnail_script_path, video_id]
+            subprocess.run(thumbnail_Command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # Execute the script
         
         # Use the ID to run the set_mp3_tags function
         cover_image = f"{video_id}.jpg"  # Assuming thumbnail1-1Crop.py generates a JPEG image with ID as filename
         if not os.path.exists(cover_image):
             cover_image = "None"
         # metadata script execution
-        subprocess.run(["python", metadata_script_path, mp3_file, title, uploader, cover_image, f"[{video_id}]"])  # Execute the script
+        metaDataCommand = ["python", metadata_script_path, mp3_file, title, uploader, cover_image, f"[{video_id}]"]
+        subprocess.run(metaDataCommand)  # Execute the script
         
         # Rename the MP3 file based on extracted title and uploader
         new_filename = f"{uploader} - {title}.mp3".replace("_", " ")  # Construct new filename
+        print("new filename is")
+        print(new_filename)
         os.rename(mp3_file, new_filename)  # Rename the file
         
     # Cleanup step  
@@ -305,6 +317,7 @@ def main():
     
     if override_image:
         os.chdir("download")
+        mp3_files = collect_mp3_files()
         for mp3_file in mp3_files:      
             override_command = ["python", override_script_path, mp3_file, override_image_path]
             subprocess.run(override_command)
