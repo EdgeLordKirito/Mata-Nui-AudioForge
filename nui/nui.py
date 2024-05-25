@@ -30,6 +30,8 @@ def download_playlist(video_id):
     # Command to download the playlist using yt-dlp
     command = [
         "yt-dlp",
+        "-q",
+        "--progress",
         "-f", "bestaudio",
         "-x",
         "--audio-format", "mp3",
@@ -45,6 +47,8 @@ def download_video(video_id):
     # Command to download the video using yt-dlp
     command = [
         "yt-dlp",
+        "-q",
+        "--progress",
         "-f", "bestaudio",
         "-x",
         "--audio-format", "mp3",
@@ -191,8 +195,6 @@ def check_override_path(override_image_path):
         bool: True if the image is valid, False otherwise.
     """
     
-    print("Override Image is")
-    print(override_image_path)
     if os.path.isfile(override_image_path) and override_image_path.lower().endswith('.jpg'):
         # Check image dimensions
         img = Image.open(override_image_path)
@@ -206,12 +208,20 @@ def check_override_path(override_image_path):
         print("Error: Invalid override image path or file format. Please provide a valid JPEG image.")
         sys.exit(1)
 
+def check_absolute_path(path):
+    if os.path.isabs(path):
+        return path
+    else:
+        print("Error: Absolute path to the override image is required.")
+        sys.exit(1)
+
+
 def main():
 
     check_write_permissions()
     
     if len(sys.argv) < 2:
-        print("Usage: python script.py <YouTube video URL or video ID> [-t] [-o <override_image_path>]")
+        print("Usage: python script.py <Video URL | Video ID | Playlist link> [-t] [-o <override_image_path>]")
         sys.exit(1)
 
     url = sys.argv[1]
@@ -228,8 +238,8 @@ def main():
             skip_thumbnail_flag = True
         elif arg == "-o":
             if i + 1 < len(sys.argv):
-                if check_override_path(sys.argv[i + 1]):
-                    override_image_path = sys.argv[i + 1]
+                override_image_path = sys.argv[i + 1]
+                if check_override_path(override_image_path):
                     override_image = True
             else:
                 print("Error: Missing argument for -o flag.")
@@ -315,6 +325,7 @@ def main():
     picard_command = ["python", picard_script_path, os.path.abspath("download")]
     subprocess.run(picard_command)
     
+    print("Overriding Cover images")
     if override_image:
         os.chdir("download")
         mp3_files = collect_mp3_files()
