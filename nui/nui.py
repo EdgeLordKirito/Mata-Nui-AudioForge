@@ -238,7 +238,7 @@ def main():
             skip_thumbnail_flag = True
         elif arg == "-o":
             if i + 1 < len(sys.argv):
-                override_image_path = check_absolute_path(sys.argv[i + 1])
+                override_image_path = sys.argv[i + 1]
                 if check_override_path(override_image_path):
                     override_image = True
             else:
@@ -325,6 +325,7 @@ def main():
     picard_command = ["python", picard_script_path, os.path.abspath("download")]
     subprocess.run(picard_command)
     
+    print("Overriding Cover images")
     if override_image:
         os.chdir("download")
         mp3_files = collect_mp3_files()
