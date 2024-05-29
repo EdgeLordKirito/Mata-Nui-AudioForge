@@ -21,8 +21,8 @@ python script.py <Video URL | Video ID | Playlist link> [-t] [-o] [-over | -over
 Replace <Video URL | Video Id | Playlist link> with the URL, video ID, or playlist link of the YouTube content you want to download and process.
 Optional:  
 The -t flag removes the automatic thumbnail embedding that is done.  
-The -o flag replaces all covers with ones sourced from youtube.
-the -over or -override flag overrides all embeded covers of the final files with the specified image an absolut path to the image is required.  
+The -o flag replaces all covers with ones sourced from youtube.  
+The -over / -override flag overrides all embeded covers of the final files with the specified image an absolut path to the image is required.  
 
 ### Simplifying Execution
 
