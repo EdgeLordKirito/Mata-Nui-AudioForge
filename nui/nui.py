@@ -480,7 +480,6 @@ def main():
         for mp3_file in mp3_files:      
             override_command = ["python", override_script_path, mp3_file, override_image_path]
             completed_process = subprocess.run(override_command, capture_output=True, text=True)
-            print_highlighted(completed_process.stdout, "cyan")
 
     # Cleanup step
     # Remove all JPEG files
