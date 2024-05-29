@@ -47,6 +47,22 @@ def print_highlighted(message, color):
         print(default_text_color_code + message + reset_color_code)
 
 
+def ensure_unique_filename(filename):
+    # Check if the file already exists
+    if os.path.exists(filename):
+        # Split the filename and extension
+        name, extension = os.path.splitext(filename)
+        # Initialize counter
+        counter = 1
+        # Increment the counter until a unique filename is found
+        while os.path.exists(f"{name}_{counter}{extension}"):
+            counter += 1
+        # Construct the unique filename
+        return f"{name}({counter}){extension}"
+    else:
+        # If the file doesn't exist, return the original filename
+        return filename
+
 def extract_video_id(url):
     # Extract video ID using regex
     video_id_match = re.search(r'(?<=watch\?v=)[\w-]+', url)
@@ -288,6 +304,24 @@ def check_absolute_path(path):
         print_error("Error: Absolute path to the override image is required.")
         sys.exit(1)
 
+def copy_image_to_download_dir(override_image_path, download_dir):
+    # Copy the file to the download directory
+    shutil.copy(override_image_path, download_dir)
+
+
+def resolve_path(file_path):
+    # Check if the provided path is an absolute path
+    if os.path.isabs(file_path):
+        return file_path
+    else:
+        # Remove leading "./" or ".\" from the relative path if present
+        if file_path.startswith("./") or file_path.startswith(".\\"):
+            file_path = file_path[2:]
+        
+        # Prepend the directory of the current script to the relative path and normalize it
+        base_dir = os.path.dirname(__file__)
+        path = os.path.join(base_dir, file_path)
+        return path
 
 def main():
 
@@ -317,9 +351,10 @@ def main():
             debug_mode = True  # Assuming debug_mode is a boolean variable
         elif arg == "-over" or arg == "-override":
             if i + 1 < len(sys.argv):
-                override_image_path = sys.argv[i + 1]
+                override_image_path = resolve_path(sys.argv[i + 1])
                 if check_override_path(override_image_path):
                     override_image = True
+                    skip_thumbnail_flag = True
             else:
                 print_error("Error: Missing argument for -over/-override flag.")
                 sys.exit(1)
@@ -328,6 +363,7 @@ def main():
     if skip_thumbnail_flag and original_thumbnail_flag:
         print_error("Error: Skipping thumbnails and embedding the original thumbnails is not possible at the same time.")
         sys.exit(1)
+    
     
     is_playlist = is_playlist_link(url)
     
@@ -342,15 +378,15 @@ def main():
         print("Video ID:", video_id)
         print("Is Playlist:", is_playlist)
     
+    create_download_directory()
+    
     # Branch based on whether it's a playlist
     if is_playlist:
-        create_download_directory()
         os.chdir("download")
         download_playlist(video_id)
         print()
         pass
     else:
-        create_download_directory()
         os.chdir("download")
         download_video(video_id)
         print()
@@ -374,6 +410,7 @@ def main():
     #build dictionary to contain key value pairs that link mp3 to its image so that it can be overwritten after picard
     
     mp3_to_image = {}
+    seen_ids = []
     
     # Loop over the mp3_files list
     for mp3_file in mp3_files:
@@ -384,6 +421,8 @@ def main():
             print("Title:", title)
             print("Uploader:", uploader)
         
+        if video_id in seen_ids:
+            continue
         
         if not skip_thumbnail_flag:
             # Run the thumbnail1-1Crop.py script
@@ -402,8 +441,11 @@ def main():
         
         # Rename the MP3 file based on extracted title and uploader
         new_filename = f"{uploader} - {title}.mp3".replace("_", " ")  # Construct new filename
+        new_filename = ensure_unique_filename(new_filename)
         mp3_to_image[new_filename] = cover_image
+        #add increment if already exist
         os.rename(mp3_file, new_filename)  # Rename the file
+        seen_ids.append(video_id)
         
             
     # Change directory one level up
@@ -430,6 +472,16 @@ def main():
             # Call the override script subprocess
             subprocess.run(override_command)
       
+    
+    if override_image:
+        print_highlighted("Overriding Cover images", "cyan")
+        #os.chdir("download")
+        mp3_files = collect_mp3_files()
+        for mp3_file in mp3_files:      
+            override_command = ["python", override_script_path, mp3_file, override_image_path]
+            completed_process = subprocess.run(override_command, capture_output=True, text=True)
+            print_highlighted(completed_process.stdout, "cyan")
+
     # Cleanup step
     # Remove all JPEG files
     if debug_mode:
@@ -438,14 +490,6 @@ def main():
         if file.endswith(".jpg"):
             os.remove(os.path.join(os.getcwd(), file))
     
-    if override_image:
-        print_highlighted("Overriding Cover images", "cyan")
-        #os.chdir("download")
-        mp3_files = collect_mp3_files()
-        for mp3_file in mp3_files:      
-            override_command = ["python", override_script_path, mp3_file, override_image_path]
-            subprocess.run(override_command)
-            
     os.chdir("..")
     
     move_download_to_output()
