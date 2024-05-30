@@ -1,3 +1,0 @@
-eyed3
-yt-dlp
-picard
