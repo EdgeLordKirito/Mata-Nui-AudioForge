@@ -4,6 +4,7 @@ import sys
 import subprocess
 import shutil
 from PIL import Image
+from itertools import count
 
 
 def print_error(message):
@@ -47,6 +48,9 @@ def print_highlighted(message, color):
         print(default_text_color_code + message + reset_color_code)
 
 
+def is_standard_keyboard_ascii(s):
+    return all(32 <= ord(char) <= 126 for char in s)
+
 def ensure_unique_filename(filename):
     # Check if the file already exists
     if os.path.exists(filename):
@@ -55,7 +59,7 @@ def ensure_unique_filename(filename):
         # Initialize counter
         counter = 1
         # Increment the counter until a unique filename is found
-        while os.path.exists(f"{name}_{counter}{extension}"):
+        while os.path.exists(f"{name}({counter}){extension}"):
             counter += 1
         # Construct the unique filename
         return f"{name}({counter}){extension}"
@@ -115,7 +119,7 @@ def download_playlist(video_id):
         "--audio-format", "mp3",
         "--audio-quality", "320k",
         "-o", "[%(id)s]§§§%(title)s+++%(uploader)s.%(ext)s",
-        "--restrict-filenames",
+        #"--restrict-filenames",
         "--windows-filenames",  
         video_id
     ]
@@ -141,7 +145,7 @@ def download_video(video_id):
         "--audio-format", "mp3",
         "--audio-quality", "320k",
         "-o", "[%(id)s]§§§%(title)s+++%(uploader)s.%(ext)s",
-        "--restrict-filenames",
+        #"--restrict-filenames",
         "--windows-filenames",
         video_id
     ]
@@ -182,7 +186,8 @@ def extract_id_title_uploader(filename):
         uploader = None
 
     # Trim the title to remove leading and following '-', '_', and spaces
-    title = remove_from_string(uploader,title)
+    title = remove_uploader_from_title(uploader,title)
+    title = process_title(title)
     uploader = process_uploader(uploader)
 
     return video_id, title, uploader
@@ -218,6 +223,19 @@ def process_uploader(uploader):
         uploader = remove_from_string(word, uploader)
 
     return uploader
+    
+def process_title(title):
+    delimiters = ['_', '-', '.', ' ', ',', '/', '\\', '|', ':', ';']
+    words_to_remove = ["topic", "official", "Vevo", "[Audio]", "Audio"]
+
+    # Add "YouTube[delimiter]Channel" variations to the words_to_remove list
+    youtube_channel_variants = [f"YouTube{delimiter}Channel" for delimiter in delimiters]
+    words_to_remove.extend(youtube_channel_variants)
+
+    for word in words_to_remove:
+        title = remove_from_string(word, title)
+
+    return title    
  
 def remove_from_string(replacer, target):
     replacer_lower = replacer.lower()
@@ -411,6 +429,7 @@ def main():
     
     mp3_to_image = {}
     seen_ids = []
+    counter = count(start=1)
     
     # Loop over the mp3_files list
     for mp3_file in mp3_files:
@@ -437,9 +456,16 @@ def main():
         # metadata script execution
         metaDataCommand = ["python", metadata_script_path, mp3_file, title, uploader, cover_image, f"[{video_id}]"]
         completed_process = subprocess.run(metaDataCommand, capture_output=True, text=True)  # Execute the script
-        print_highlighted(completed_process.stdout, "cyan")
+        #print_highlighted(completed_process.stdout, "cyan")
         
         # Rename the MP3 file based on extracted title and uploader
+        
+        #prepend ascii number to non ascii starting string
+        if not is_standard_keyboard_ascii(uploader):
+            next_value = next(counter)
+            uploader = f"{next_value}_{uploader}"
+        
+        
         new_filename = f"{uploader} - {title}.mp3".replace("_", " ")  # Construct new filename
         new_filename = ensure_unique_filename(new_filename)
         mp3_to_image[new_filename] = cover_image
